@@ -37,23 +37,23 @@ cfn-deploy(){
     stack-name   - the stack name
     template     - the template file
     parameters   - the paramters file
-    capablities  - capablities for IAM
+    capabilities  - capablities for IAM
     "
     region=$1
     stack=$2
     template=$3
     parameters=$4
-    capablities=$5
+    capabilities=$5
 
     ARG_CMD=" "
-    if [[ ! -z $template ]];then
+    if [[ -n $template ]];then
         ARG_CMD="${ARG_CMD}--template-body file://${template} "
     fi
-    if [[ ! -z $parameters ]];then
+    if [[ -n $parameters ]];then
         ARG_CMD="${ARG_CMD}--parameters file://${parameters} "
     fi
-    if [[ ! -z $capablities ]];then
-        ARG_CMD="${ARG_CMD}--capabilities ${capablities} "
+    if [[ -n $capabilities ]];then
+        ARG_CMD="${ARG_CMD}--capabilities ${capabilities} "
     fi
 
     ARG_STRING=$ARG_CMD
@@ -63,18 +63,18 @@ cfn-deploy(){
 
     echo -e "\nVERIFYING IF CFN STACK EXISTS ...!"
 
-    if ! aws cloudformation describe-stacks --region $1 --stack-name $2 ; then
+    if ! aws cloudformation describe-stacks --region $region --stack-name $stack ; then
 
     echo -e "\nSTACK DOES NOT EXISTS, RUNNING CREATE"
     aws cloudformation create-stack \
-        --region $1 \
-        --stack-name $2 \
+        --region $region \
+        --stack-name $stack \
         $ARG_STRING
 
-    echo "\nSLEEP STILL STACK CREATES zzz ..."
+    echo -e "\nSLEEP STILL STACK CREATES zzz ..."
     aws cloudformation wait stack-create-complete \
-        --region $1 \
-        --stack-name $2 \
+        --region $region \
+        --stack-name $stack \
 
     else
 
@@ -82,8 +82,8 @@ cfn-deploy(){
 
     set +e
     stack_output=$( aws cloudformation update-stack \
-        --region $1 \
-        --stack-name $2 \
+        --region $region \
+        --stack-name $stack \
         $ARG_STRING  2>&1)
     exit_status=$?
     set -e
@@ -102,12 +102,12 @@ cfn-deploy(){
 
     echo "STACK UPDATE CHECK ..."
     aws cloudformation wait stack-update-complete \
-        --region $1 \
-        --stack-name $2 \
+        --region $region \
+        --stack-name $stack \
 
     fi
 
-    echo -e "\nSUCCESSFULLY UPDATED - $2"
+    echo -e "\nSUCCESSFULLY UPDATED - $stack"
 }
 
-cfn-deploy $AWS_REGION $STACK_NAME $TEMPLATE_FILE $PARAMETERS_FILE $CAPABLITIES
+cfn-deploy $AWS_REGION $STACK_NAME $TEMPLATE_FILE $PARAMETERS_FILE $CAPABILITIES
